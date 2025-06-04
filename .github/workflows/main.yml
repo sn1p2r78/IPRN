@@ -1,0 +1,37 @@
+name: Run Selenium Hub Docker
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  selenium-hub:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Pull Selenium Hub Docker image
+        run: docker pull selenium/hub:latest
+
+      - name: Run Selenium Hub container
+        run: |
+          docker run -d --name selenium-hub -p 4444:4444 selenium/hub:latest
+
+      - name: Check Selenium Hub status
+        run: |
+          sleep 5
+          docker ps | grep selenium-hub
+          curl -s http://localhost:4444/wd/hub/status | jq
+
+      # Optional: Stop and remove the container after job
+      - name: Clean up
+        if: always()
+        run: |
+          docker stop selenium-hub || true
+          docker rm selenium-hub || true
